@@ -3,9 +3,20 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-
+import matplotlib.colors as mcolors
 # Set the default style for matplotlib
-plt.style.use('bmh')  # Using 'default' instead of 'seaborn'
+# plt.style.use('bmh')  # Using 'default' instead of 'seaborn'
+plt.style.use('seaborn-v0_8-darkgrid')
+
+# ['Solarize_Light2', '_classic_test_patch', 
+# '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 
+# 'classic', 'dark_background', 'fast', 'fivethirtyeight', 
+# 'ggplot', 'grayscale', 'seaborn-v0_8', 'seaborn-v0_8-bright', 
+# 'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 
+# 'seaborn-v0_8-darkgrid', 'seaborn-v0_8-deep', 'seaborn-v0_8-muted', 
+# 'seaborn-v0_8-notebook', 'seaborn-v0_8-paper', 'seaborn-v0_8-pastel', 
+# 'seaborn-v0_8-poster', 'seaborn-v0_8-talk', 'seaborn-v0_8-ticks', 
+# 'seaborn-v0_8-white', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
 
 # Set page config
 st.set_page_config(page_title="VeBetterDAO: X-apps User Insights", layout="centered")
@@ -27,6 +38,22 @@ st.title("VeBetterDAO: X-apps User Insights Dashboard")
 st.write("Note: This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution.")
 
 # Set the style for all plots
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_style("whitegrid")
+sns.set_palette("pastel")
+plt.rcParams['figure.figsize'] = (12, 8)
+plt.rcParams['font.size'] = 10
+plt.rcParams['axes.titlesize'] = 14
+plt.rcParams['axes.labelsize'] = 12
+plt.rcParams['axes.spines.top'] = False
+plt.rcParams['axes.spines.right'] = False
+plt.rcParams['axes.grid'] = True
+plt.rcParams['grid.alpha'] = 0.3
+plt.rcParams['lines.linewidth'] = 2
+
+
+chartSize = (12, 8)
+
 
 # Create a function to display the visualizations
 def create_visualizations():
@@ -34,7 +61,7 @@ def create_visualizations():
     st.subheader("Cumulative Total Actions Over Time")
     df_total_actions = df.groupby(df['Timestamp'].dt.date).size()
     df_cumulative_actions = df_total_actions.cumsum()
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_cumulative_actions.plot(ax=ax, color='green')
     ax.set_title("Cumulative Total Actions Over Time")
     ax.tick_params(axis='x', rotation=45)
@@ -44,7 +71,7 @@ def create_visualizations():
     
     
     st.subheader("Total Number of Actions per Day")
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_total_actions.plot(ax=ax, color='blue')
     ax.set_title("Total Number of Actions per Day")
     ax.tick_params(axis='x', rotation=45)
@@ -57,7 +84,7 @@ def create_visualizations():
     # Chart 1: App Usage Over Time
     st.subheader("App Usage Over Time")
     df_grouped_time = df.groupby([df['Timestamp'].dt.date, 'App']).size().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_grouped_time.columns:
         if app == 'GreenAmbassador':
             ax.plot(df_grouped_time.index, df_grouped_time[app], linestyle='--', marker='o', label=app)
@@ -80,7 +107,7 @@ def create_visualizations():
     df_unique_users.columns = ['App', 'Date', 'Unique_Users']
     
     # Create the plot
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_unique_users['App'].unique():
         app_data = df_unique_users[df_unique_users['App'] == app]
         ax.plot(app_data['Date'], app_data['Unique_Users'], label=app)
@@ -98,7 +125,7 @@ def create_visualizations():
     # Chart 4: Unique Receivers/Wallets per App
     st.subheader("Unique Receivers/Wallets per App")
     df_unique_receivers = df.groupby('App')['Receiver'].nunique().sort_values(ascending=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_unique_receivers.plot(kind='bar', ax=ax, color=plt.cm.Set2(np.arange(len(df_unique_receivers))))
     ax.set_title("Unique Receivers/Wallets per App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
@@ -110,7 +137,7 @@ def create_visualizations():
     # Chart 3: Total Reward Distributed per App
     st.subheader("Total Reward Distributed per App")
     df_grouped_reward = df.groupby('App')['Reward'].sum().sort_values(ascending=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_grouped_reward.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_grouped_reward))))
     ax.set_title("Total Reward Distributed per App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
@@ -124,8 +151,8 @@ def create_visualizations():
     # Chart 5: Average Reward per User per App
     st.subheader("Average Reward per User per App")
     df_avg_reward = df.groupby(['App', 'Receiver'])['Reward'].mean().reset_index()
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(x='App', y='Reward', data=df_avg_reward, ax=ax, palette='Set1')
+    fig, ax = plt.subplots(figsize=chartSize)
+    sns.boxplot(x='App', y='Reward', data=df_avg_reward, ax=ax, hue='App', legend=False)
     ax.set_title("Average Reward per User per App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
     ax.set_ylabel("Average Reward", fontsize=12)
@@ -136,7 +163,7 @@ def create_visualizations():
     # Chart 6: Daily Actions per App (Stacked Area)
     st.subheader("Daily Actions per App (Stacked Area)")
     df_daily_actions = df.groupby([df['Timestamp'].dt.date, 'App']).size().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_daily_actions.plot(kind='area', stacked=True, ax=ax, cmap='viridis')
     ax.set_title("Daily Actions per App", fontsize=16)
     ax.set_xlabel("Date", fontsize=12)
@@ -149,7 +176,7 @@ def create_visualizations():
     # Chart 7: App Usage by Day of the Week (Heatmap)
     st.subheader("App Usage by Day of the Week (Heatmap)")
     df_heatmap = df.groupby(['DayOfWeek', 'App']).size().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.heatmap(df_heatmap.T, cmap='YlGnBu', annot=True, fmt='g', ax=ax, cbar_kws={'label': 'Number of Actions'})
     ax.set_title("App Usage by Day of the Week", fontsize=16)
     ax.set_xlabel("Day of Week", fontsize=12)
@@ -160,7 +187,7 @@ def create_visualizations():
     # Chart 8: Total Rewards Distributed Over Time
     st.subheader("Total Rewards Distributed Over Time")
     df_rewards_time = df.groupby([df['Timestamp'].dt.date, 'App'])['Reward'].sum().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_rewards_time.columns:
         if app == 'GreenAmbassador':
             ax.plot(df_rewards_time.index, df_rewards_time[app], linestyle='--', marker='o', label=app)
@@ -178,7 +205,7 @@ def create_visualizations():
     st.subheader("First-time Users Over Time")
     # Exclude GreenAmbassador app as it's an outlier and messes up the chart
     df_first_time_users = df[df['App'] != 'GreenAmbassador'].groupby([df['FirstSeen'].dt.date, 'App'])['Receiver'].nunique().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_first_time_users.columns:
         ax.plot(df_first_time_users.index, df_first_time_users[app], label=app)
     ax.set_title("First-time Users Over Time", fontsize=16)
@@ -190,8 +217,8 @@ def create_visualizations():
     st.write("This graph shows the number of new users joining each app over time, helping to visualize user acquisition trends. Note: GreenAmbassador app is not plotted as it's an outlier/all data on monday. They have been removed to see patterns in remaining apps")
     # Chart 10: Reward Distribution by Day of the Week
     st.subheader("Reward Distribution by Day of the Week")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(x='DayOfWeek', y='Reward', data=df, palette="Set2", ax=ax)
+    fig, ax = plt.subplots(figsize=chartSize)
+    sns.boxplot(x='DayOfWeek', y='Reward', data=df, hue='DayOfWeek', legend=False, ax=ax)
     ax.set_title("Reward Distribution by Day of the Week", fontsize=16)
     ax.set_xlabel("Day of Week", fontsize=12)
     ax.set_ylabel("Reward", fontsize=12)
@@ -202,7 +229,7 @@ def create_visualizations():
     # Chart 11: Cumulative Rewards per App Over Time
     st.subheader("Cumulative Rewards per App Over Time")
     df_cumulative_rewards = df.groupby([df['Timestamp'].dt.date, 'App'])['Reward'].sum().groupby('App').cumsum().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_cumulative_rewards.columns:
         ax.plot(df_cumulative_rewards.index, df_cumulative_rewards[app], label=app)
     ax.set_title("Cumulative Rewards per App Over Time", fontsize=16)
@@ -216,7 +243,7 @@ def create_visualizations():
     # Chart 12: Actions by Hour of the Day
     st.subheader("Actions by Hour of the Day")
     df_actions_hour = df.groupby(['HourOfDay', 'App']).size().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_actions_hour.plot(ax=ax, linewidth=2)
     ax.set_title("Actions by Hour of the Day", fontsize=16)
     ax.set_xlabel("Hour", fontsize=12)
@@ -228,7 +255,7 @@ def create_visualizations():
     # Chart 13: Unique Receivers Growth Over Time
     st.subheader("Unique Receivers Growth Over Time")
     df_unique_receivers_growth = df.groupby([df['Timestamp'].dt.date, 'App'])['Receiver'].nunique().groupby('App').cumsum().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     for app in df_unique_receivers_growth.columns:
         ax.plot(df_unique_receivers_growth.index, df_unique_receivers_growth[app], label=app)
     ax.set_title("Unique Receivers Growth Over Time", fontsize=16)
@@ -238,10 +265,12 @@ def create_visualizations():
     ax.legend(title="App", title_fontsize=12)
     st.pyplot(fig)
     st.write("This chart shows the cumulative growth of unique users for each app over time, helping to visualize user acquisition and retention trends.")
+    
+    
     # Chart 14: Actions per App per Receiver
     st.subheader("Actions per App per Receiver")
     df_actions_per_user = df.groupby(['App', 'Receiver']).size().reset_index(name='Actions')
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.boxplot(x='App', y='Actions', data=df_actions_per_user, palette="muted", ax=ax)
     ax.set_title("Actions per App per Receiver", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
@@ -253,7 +282,7 @@ def create_visualizations():
     # Chart 15: Time Between First Action and Current Action (Days)
     st.subheader("Time Between First Action and Current Action (Days)")
     df['TimeSinceFirst'] = (df['Timestamp'] - df['FirstSeen']).dt.total_seconds() / (60 * 60 * 24)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.boxplot(x='App', y='TimeSinceFirst', data=df, palette="coolwarm", ax=ax)
     ax.set_title("Time Between First Action and Current Action (Days)", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
@@ -265,15 +294,17 @@ def create_visualizations():
     # Chart 16: Heatmap of Total Rewards by App and Day of the Week
     st.subheader("Heatmap of Total Rewards by App and Day of the Week")
     df_heatmap_rewards = df.groupby([df['DayOfWeek'], 'App'])['Reward'].sum().unstack().fillna(0)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.heatmap(df_heatmap_rewards.T, cmap='viridis', annot=True, fmt='.0f', ax=ax, cbar_kws={'label': 'Total Reward'})
+    fig, ax = plt.subplots(figsize=chartSize)
+    max_reward = df_heatmap_rewards.max().max()
+    norm = mcolors.LogNorm(vmin=1, vmax=max_reward)
+    sns.heatmap(df_heatmap_rewards.T, cmap='viridis', norm=norm, annot=True, fmt='.0f', ax=ax, cbar_kws={'label': 'Total Reward'})
     ax.set_title("Total Rewards by App and Day of the Week", fontsize=16)
     ax.set_xlabel("Day of Week", fontsize=12)
     ax.set_ylabel("App", fontsize=12)
     st.pyplot(fig)
     
     st.subheader("Distribution of Days Since First Interaction")
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.histplot(df['DaysSinceFirst'], kde=True, bins=30, color='purple', ax=ax)
     ax.set_title("Distribution of Days Since First Interaction", fontsize=16)
     ax.set_xlabel("Days Since First Interaction", fontsize=12)
@@ -281,7 +312,7 @@ def create_visualizations():
     st.pyplot(fig)
     
     st.subheader("App Usage: Weekdays vs Weekends")
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.countplot(x='Weekend', hue='App', data=df, palette='Set3', ax=ax)
     ax.set_title("App Usage: Weekdays vs Weekends", fontsize=16)
     ax.set_xlabel("Is Weekend", fontsize=12)
@@ -291,7 +322,7 @@ def create_visualizations():
     
     st.subheader("Receiver Retention by App")
     df_retention = df.groupby(['App', 'Receiver']).size().groupby('App').mean().sort_values(ascending=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_retention.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_retention))))
     ax.set_title("Average Retention (Actions per Receiver) by App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
@@ -304,7 +335,7 @@ def create_visualizations():
     df_unique_receivers = df.groupby('App')['Receiver'].nunique().reset_index()
     df_reward_vs_receivers = pd.merge(df_total_reward, df_unique_receivers, on='App')
     
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     sns.scatterplot(x='Receiver', y='Reward', data=df_reward_vs_receivers, hue='App', s=100, ax=ax)
     ax.set_title("Total Reward vs. Unique Receivers per App", fontsize=16)
     ax.set_xlabel("Unique Receivers", fontsize=12)
@@ -319,7 +350,7 @@ def create_visualizations():
     
     df_churn = df.groupby(['App', 'Receiver'])['Timestamp'].nunique().reset_index()
     df_churn = df_churn.groupby('App').apply(lambda x: x[x['Timestamp'] == 1].shape[0] / x.shape[0])
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=chartSize)
     df_churn.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_churn))))
     ax.set_title("Churn Rate by App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
