@@ -10,6 +10,8 @@ plt.style.use('fivethirtyeight')  # Using 'default' instead of 'seaborn'
 # Set page config
 st.set_page_config(page_title="VeBetterDAO: X-apps User Insights", layout="centered")
 
+
+
 # Load the dataset
 df = pd.read_csv('dataframe.csv')
 
@@ -25,6 +27,7 @@ df['Weekend'] = df['Timestamp'].dt.dayofweek >= 5  # Weekend if True
 st.title("VeBetterDAO: X-apps User Insights Dashboard")
 
 # Set the style for all plots
+st.write("Note: This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution.")
 
 # Create a function to display the visualizations
 def create_visualizations():
