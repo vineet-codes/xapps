@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Set the default style for matplotlib
-plt.style.use('fivethirtyeight')  # Using 'default' instead of 'seaborn'
+plt.style.use('bmh')  # Using 'default' instead of 'seaborn'
 
 # Set page config
 st.set_page_config(page_title="VeBetterDAO: X-apps User Insights", layout="centered")
@@ -30,19 +30,9 @@ st.write("Note: This data primarily focuses on apps utilizing the Rewards Pool f
 
 # Create a function to display the visualizations
 def create_visualizations():
-    
-    st.subheader("Total Number of Actions per Day")
-    df_total_actions = df.groupby(df['Timestamp'].dt.date).size()
-    fig, ax = plt.subplots(figsize=(8, 5))
-    df_total_actions.plot(ax=ax, color='blue')
-    ax.set_title("Total Number of Actions per Day")
-    ax.tick_params(axis='x', rotation=45)
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Number of Actions")
-    st.pyplot(fig)
-    
-    # NEW: Cumulative Total Actions Over Time
+ # NEW: Cumulative Total Actions Over Time
     st.subheader("Cumulative Total Actions Over Time")
+    df_total_actions = df.groupby(df['Timestamp'].dt.date).size()
     df_cumulative_actions = df_total_actions.cumsum()
     fig, ax = plt.subplots(figsize=(8, 5))
     df_cumulative_actions.plot(ax=ax, color='green')
@@ -51,6 +41,18 @@ def create_visualizations():
     ax.set_xlabel("Date")
     ax.set_ylabel("Cumulative Actions")
     st.pyplot(fig)
+    
+    
+    st.subheader("Total Number of Actions per Day")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    df_total_actions.plot(ax=ax, color='blue')
+    ax.set_title("Total Number of Actions per Day")
+    ax.tick_params(axis='x', rotation=45)
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Number of Actions")
+    st.pyplot(fig)
+    
+    
     
     # Chart 1: App Usage Over Time
     st.subheader("App Usage Over Time")
@@ -78,25 +80,20 @@ def create_visualizations():
     df_cumulative_users.columns = ['App', 'Date', 'Cumulative_Users']
     
     # Create the plot
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(10, 6))
     for app in df_cumulative_users['App'].unique():
         app_data = df_cumulative_users[df_cumulative_users['App'] == app]
-        if app == 'GreenAmbassador':
-            ax.plot(app_data['Date'], app_data['Cumulative_Users'], label=app, linewidth=2, linestyle='--', marker='o')
-        else:
-            ax.plot(app_data['Date'], app_data['Cumulative_Users'], label=app, linewidth=2)
+        ax.plot(app_data['Date'], app_data['Cumulative_Users'], label=app)
     
-    ax.set_title("Cumulative Unique Users Over Time by App", fontsize=16)
-    ax.set_xlabel("Date", fontsize=12)
-    ax.set_ylabel("Cumulative Unique Users", fontsize=12)
+    ax.set_title("Cumulative Unique Users Over Time by App")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Cumulative Unique Users")
     ax.tick_params(axis='x', rotation=45)
-    ax.legend(title="App", title_fontsize=12, bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax.grid(True, linestyle='--', alpha=0.7)
+    ax.legend(title="App")
     
-    plt.tight_layout()
     st.pyplot(fig)
     
-    st.write("This graph shows the cumulative growth of unique users for each app over time. It helps visualize user acquisition and retention trends across different apps. Note that GreenAmbassador data is only available on Mondays.")
+    st.write("This graph shows the cumulative growth of unique users for each app over time.")
     
     # Chart 3: Total Reward Distributed per App
     st.subheader("Total Reward Distributed per App")
@@ -177,21 +174,18 @@ def create_visualizations():
     
     # Chart 9: First-time Users Over Time
     st.subheader("First-time Users Over Time")
-    df_first_time_users = df.groupby([df['FirstSeen'].dt.date, 'App'])['Receiver'].nunique().unstack().fillna(0)
+    # Exclude GreenAmbassador app as it's an outlier and messes up the chart
+    df_first_time_users = df[df['App'] != 'GreenAmbassador'].groupby([df['FirstSeen'].dt.date, 'App'])['Receiver'].nunique().unstack().fillna(0)
     fig, ax = plt.subplots(figsize=(10, 6))
     for app in df_first_time_users.columns:
-        if app == 'GreenAmbassador':
-            ax.plot(df_first_time_users.index, df_first_time_users[app], linestyle='--', marker='o', label=app)
-        else:
-            ax.plot(df_first_time_users.index, df_first_time_users[app], label=app)
+        ax.plot(df_first_time_users.index, df_first_time_users[app], label=app)
     ax.set_title("First-time Users Over Time", fontsize=16)
     ax.set_xlabel("Date", fontsize=12)
     ax.set_ylabel("Number of First-Time Users", fontsize=12)
     ax.tick_params(axis='x', rotation=45)
     ax.legend(title="App", title_fontsize=12)
     st.pyplot(fig)
-    st.write("This graph shows the number of new users joining each app over time, helping to visualize user acquisition trends. Note that GreenAmbassador data is only available on Mondays.")
-    
+    st.write("This graph shows the number of new users joining each app over time, helping to visualize user acquisition trends. Note: GreenAmbassador app is not plotted as it's an outlier/all data on monday. They have been removed to see patterns in remaining apps")
     # Chart 10: Reward Distribution by Day of the Week
     st.subheader("Reward Distribution by Day of the Week")
     fig, ax = plt.subplots(figsize=(10, 6))
