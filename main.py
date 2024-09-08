@@ -75,25 +75,37 @@ def create_visualizations():
     # Chart 2: User Engagement Over Time
     st.subheader("User Engagement Over Time")
     
-    # Calculate cumulative unique users for each app
-    df_cumulative_users = df.groupby(['App', df['Timestamp'].dt.date])['Receiver'].nunique().groupby(level=0).cumsum().reset_index()
-    df_cumulative_users.columns = ['App', 'Date', 'Cumulative_Users']
+    # Calculate unique receivers per app over time
+    df_unique_users = df.groupby(['App', df['Timestamp'].dt.date])['Receiver'].nunique().reset_index()
+    df_unique_users.columns = ['App', 'Date', 'Unique_Users']
     
     # Create the plot
     fig, ax = plt.subplots(figsize=(10, 6))
-    for app in df_cumulative_users['App'].unique():
-        app_data = df_cumulative_users[df_cumulative_users['App'] == app]
-        ax.plot(app_data['Date'], app_data['Cumulative_Users'], label=app)
+    for app in df_unique_users['App'].unique():
+        app_data = df_unique_users[df_unique_users['App'] == app]
+        ax.plot(app_data['Date'], app_data['Unique_Users'], label=app)
     
-    ax.set_title("Cumulative Unique Users Over Time by App")
+    ax.set_title("Unique Users Over Time by App")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Cumulative Unique Users")
+    ax.set_ylabel("Number of Unique Users")
     ax.tick_params(axis='x', rotation=45)
     ax.legend(title="App")
     
     st.pyplot(fig)
     
-    st.write("This graph shows the cumulative growth of unique users for each app over time.")
+    st.write("This graph shows the number of unique users for each app over time.")
+
+    # Chart 4: Unique Receivers/Wallets per App
+    st.subheader("Unique Receivers/Wallets per App")
+    df_unique_receivers = df.groupby('App')['Receiver'].nunique().sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    df_unique_receivers.plot(kind='bar', ax=ax, color=plt.cm.Set2(np.arange(len(df_unique_receivers))))
+    ax.set_title("Unique Receivers/Wallets per App", fontsize=16)
+    ax.set_xlabel("App", fontsize=12)
+    ax.set_ylabel("Unique Receivers/Wallets", fontsize=12)
+    ax.tick_params(axis='x', rotation=45)
+    st.pyplot(fig)
+    st.write("This graph shows the number of unique users (wallets) for each app, indicating the size of each app's user base.")
     
     # Chart 3: Total Reward Distributed per App
     st.subheader("Total Reward Distributed per App")
@@ -107,17 +119,7 @@ def create_visualizations():
     st.pyplot(fig)
     st.write("This chart displays the total rewards distributed by each app, giving insight into which apps are most generous or popular in terms of rewards.")
     
-    # Chart 4: Unique Receivers/Wallets per App
-    st.subheader("Unique Receivers/Wallets per App")
-    df_unique_receivers = df.groupby('App')['Receiver'].nunique().sort_values(ascending=False)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    df_unique_receivers.plot(kind='bar', ax=ax, color=plt.cm.Set2(np.arange(len(df_unique_receivers))))
-    ax.set_title("Unique Receivers/Wallets per App", fontsize=16)
-    ax.set_xlabel("App", fontsize=12)
-    ax.set_ylabel("Unique Receivers/Wallets", fontsize=12)
-    ax.tick_params(axis='x', rotation=45)
-    st.pyplot(fig)
-    st.write("This graph shows the number of unique users (wallets) for each app, indicating the size of each app's user base.")
+    
     
     # Chart 5: Average Reward per User per App
     st.subheader("Average Reward per User per App")
@@ -202,10 +204,7 @@ def create_visualizations():
     df_cumulative_rewards = df.groupby([df['Timestamp'].dt.date, 'App'])['Reward'].sum().groupby('App').cumsum().unstack().fillna(0)
     fig, ax = plt.subplots(figsize=(10, 6))
     for app in df_cumulative_rewards.columns:
-        if app == 'GreenAmbassador':
-            ax.plot(df_cumulative_rewards.index, df_cumulative_rewards[app], linestyle='--', marker='o', label=app)
-        else:
-            ax.plot(df_cumulative_rewards.index, df_cumulative_rewards[app], label=app)
+        ax.plot(df_cumulative_rewards.index, df_cumulative_rewards[app], label=app)
     ax.set_title("Cumulative Rewards per App Over Time", fontsize=16)
     ax.set_xlabel("Date", fontsize=12)
     ax.set_ylabel("Cumulative Reward", fontsize=12)
@@ -231,10 +230,7 @@ def create_visualizations():
     df_unique_receivers_growth = df.groupby([df['Timestamp'].dt.date, 'App'])['Receiver'].nunique().groupby('App').cumsum().unstack().fillna(0)
     fig, ax = plt.subplots(figsize=(10, 6))
     for app in df_unique_receivers_growth.columns:
-        if app == 'GreenAmbassador':
-            ax.plot(df_unique_receivers_growth.index, df_unique_receivers_growth[app], linestyle='--', marker='o', label=app)
-        else:
-            ax.plot(df_unique_receivers_growth.index, df_unique_receivers_growth[app], label=app)
+        ax.plot(df_unique_receivers_growth.index, df_unique_receivers_growth[app], label=app)
     ax.set_title("Unique Receivers Growth Over Time", fontsize=16)
     ax.set_xlabel("Date", fontsize=12)
     ax.set_ylabel("Cumulative Unique Receivers", fontsize=12)
@@ -242,7 +238,6 @@ def create_visualizations():
     ax.legend(title="App", title_fontsize=12)
     st.pyplot(fig)
     st.write("This chart shows the cumulative growth of unique users for each app over time, helping to visualize user acquisition and retention trends.")
-    
     # Chart 14: Actions per App per Receiver
     st.subheader("Actions per App per Receiver")
     df_actions_per_user = df.groupby(['App', 'Receiver']).size().reset_index(name='Actions')
