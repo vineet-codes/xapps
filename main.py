@@ -8,13 +8,7 @@ import numpy as np
 plt.style.use('fivethirtyeight')  # Using 'default' instead of 'seaborn'
 
 # Set page config
-st.set_page_config(page_title="VeBetterDAO: X-apps User Insights", 
-                   description="Gain insights into user behavior and app activity.", 
-                   layout="centered")
-
-
-
-
+st.set_page_config(page_title="VeBetterDAO: X-apps User Insights", layout="centered")
 
 # Load the dataset
 df = pd.read_csv('dataframe.csv')
