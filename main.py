@@ -356,6 +356,109 @@ def create_visualizations():
     ax.set_xlabel("App", fontsize=12)
     ax.set_ylabel("Churn Rate", fontsize=12)
     st.pyplot(fig)
+
+    # User Activity Heatmap
+    st.subheader("User Activity Heatmap")
+    st.write("This heatmap shows the intensity of user activity across different hours of the day and days of the week.")
+    
+    pivot = df.pivot_table(values='Receiver', index='DayOfWeek', columns='HourOfDay', aggfunc='count')
+    fig, ax = plt.subplots(figsize=(16, 10))  # Increase figure size
+
+    # Use a more visually appealing colormap
+    sns.heatmap(pivot, cmap='viridis', norm=norm, ax=ax, annot=True, fmt='g', cbar_kws={'label': 'Number of Actions'})
+
+    ax.set_title("User Activity Heatmap", fontsize=20, pad=20)  # Increase title font size and padding
+    ax.set_xlabel("Hour of Day", fontsize=14, labelpad=10)  # Increase label font size and padding
+    ax.set_ylabel("Day of Week", fontsize=14, labelpad=10)
+
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=0)
+
+    # Adjust colorbar
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=12)
+    cbar.set_label('Number of Actions', fontsize=14, labelpad=10)
+
+    # Improve overall layout
+    plt.tight_layout()
+
+    st.pyplot(fig)
+
+
+    # User Engagement Over Time (Rolling Average)
+    st.subheader("User Engagement Over Time (7-day Rolling Average)")
+    st.write("This chart shows the 7-day rolling average of daily active users for each app.")
+    
+    df_daily_users = df.groupby([df['Timestamp'].dt.date, 'App'])['Receiver'].nunique().unstack().fillna(0)
+    df_rolling = df_daily_users.rolling(window=7).mean()
+    
+    fig, ax = plt.subplots(figsize=chartSize)
+    for app in df_rolling.columns:
+        ax.plot(df_rolling.index, df_rolling[app], label=app)
+    ax.set_title("User Engagement Over Time (7-day Rolling Average)", fontsize=16)
+    ax.set_xlabel("Date", fontsize=12)
+    ax.set_ylabel("Number of Active Users", fontsize=12)
+    ax.legend(title="App", title_fontsize=12)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+    # Cumulative Unique Users Over Time
+    st.subheader("Cumulative Unique Users Over Time")
+    st.write("This chart shows the cumulative number of unique users for each app over time.")
+    
+    df_cumulative_users = df.groupby([df['Timestamp'].dt.date, 'App'])['Receiver'].nunique().unstack().fillna(0).cumsum()
+    
+    fig, ax = plt.subplots(figsize=chartSize)
+    for app in df_cumulative_users.columns:
+        ax.plot(df_cumulative_users.index, df_cumulative_users[app], label=app)
+    ax.set_title("Cumulative Unique Users Over Time", fontsize=16)
+    ax.set_xlabel("Date", fontsize=12)
+    ax.set_ylabel("Cumulative Unique Users", fontsize=12)
+    ax.legend(title="App", title_fontsize=12)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+
+    # Top 10 Most Active Users
+    st.subheader("Top 10 Most Active Users")
+    st.write("This chart shows the top 10 most active users across all apps.")
+
+    top_users = df.groupby('Receiver').size().nlargest(10).reset_index(name='ActivityCount')
+    fig, ax = plt.subplots(figsize=chartSize)
+    sns.barplot(data=top_users, x='Receiver', y='ActivityCount', ax=ax)
+    ax.set_title("Top 10 Most Active Users", fontsize=16)
+    ax.set_xlabel("User", fontsize=12)
+    ax.set_ylabel("Number of Actions", fontsize=12)
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig)
+
+    # User Activity by App
+    st.subheader("User Activity by App")
+    st.write("This chart shows the distribution of user activity levels for each app.")
+
+    fig, ax = plt.subplots(figsize=chartSize)
+    sns.boxplot(data=df, x='App', y='DaysSinceFirst', ax=ax)
+    ax.set_title("User Activity Duration by App", fontsize=16)
+    ax.set_xlabel("App", fontsize=12)
+    ax.set_ylabel("Days Since First Activity", fontsize=12)
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig)
+
+    # New vs Returning Users Over Time
+    st.subheader("New vs Returning Users Over Time")
+    st.write("This chart shows the number of new and returning users over time.")
+
+    df['UserType'] = df.groupby('Receiver')['Timestamp'].transform(lambda x: np.where(x == x.min(), 'New', 'Returning'))
+    user_type_over_time = df.groupby([df['Timestamp'].dt.date, 'UserType']).size().unstack().fillna(0)
+
+    fig, ax = plt.subplots(figsize=chartSize)
+    user_type_over_time.plot(kind='area', stacked=True, ax=ax)
+    ax.set_title("New vs Returning Users Over Time", fontsize=16)
+    ax.set_xlabel("Date", fontsize=12)
+    ax.set_ylabel("Number of Users", fontsize=12)
+    ax.legend(title="User Type", title_fontsize=12)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
    
 
 # Generate and display the visualizations
