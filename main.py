@@ -35,7 +35,9 @@ df['Weekend'] = df['Timestamp'].dt.dayofweek >= 5  # Weekend if True
 
 st.title("VeBetterDAO: X-apps User Insights Dashboard")
 
-st.write("Note: This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution.")
+st.write("Note: This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution. This data only includes information up to September 8, 2024")
+
+
 
 # Set the style for all plots
 plt.style.use('seaborn-v0_8-whitegrid')
