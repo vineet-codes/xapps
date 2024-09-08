@@ -311,7 +311,20 @@ def create_visualizations():
     ax.set_ylabel("Total Reward", fontsize=12)
     ax.legend(title="App", title_fontsize=12)
     st.pyplot(fig)
+
+    # Churn Analysis
+    st.subheader("Churn Analysis")
+    st.write("This chart shows the churn rate for each app. Churn rate is calculated as the proportion of users who only interacted with the app once.")
+    st.write("We calculate this by first counting the number of unique days each user interacted with each app. Then, we consider a user 'churned' if they only interacted on one day. The churn rate is the number of churned users divided by the total number of users for each app.")
     
+    df_churn = df.groupby(['App', 'Receiver'])['Timestamp'].nunique().reset_index()
+    df_churn = df_churn.groupby('App').apply(lambda x: x[x['Timestamp'] == 1].shape[0] / x.shape[0])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    df_churn.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_churn))))
+    ax.set_title("Churn Rate by App", fontsize=16)
+    ax.set_xlabel("App", fontsize=12)
+    ax.set_ylabel("Churn Rate", fontsize=12)
+    st.pyplot(fig)
    
 
 # Generate and display the visualizations
