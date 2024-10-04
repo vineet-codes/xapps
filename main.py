@@ -35,7 +35,7 @@ df['Weekend'] = df['Timestamp'].dt.dayofweek >= 5  # Weekend if True
 
 st.title("VeBetterDAO: X-apps User Insights Dashboard")
 
-st.write("This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution. This data only includes information up to October 4, 2024")
+st.write("This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution. This data only includes information up to October 04, 2024")
 
 
 
