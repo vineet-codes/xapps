@@ -347,16 +347,96 @@ def create_visualizations():
 
     # Churn Analysis
     st.subheader("Churn Analysis")
-    st.write("This chart shows the churn rate for each app. Churn rate is calculated as the proportion of users who only interacted with the app once.")
+    st.write("This section shows the overall churn rate for each app and the churn rate over time.")
+
+    st.subheader("Overall Churn Rate")
+    st.write("Churn rate is calculated as the proportion of users who only interacted with the app once.")
     st.write("We calculate this by first counting the number of unique days each user interacted with each app. Then, we consider a user 'churned' if they only interacted on one day. The churn rate is the number of churned users divided by the total number of users for each app.")
     
+    # Overall Churn Rate
     df_churn = df.groupby(['App', 'Receiver'])['Timestamp'].nunique().reset_index()
-    df_churn = df_churn.groupby('App').apply(lambda x: x[x['Timestamp'] == 1].shape[0] / x.shape[0])
+    df_churn = df_churn.groupby('App').apply(lambda x: x[x['Timestamp'] == 1].shape[0] / x.shape[0]).reset_index()
+    df_churn.columns = ['App', 'ChurnRate']
+    
+    # Sort by churn rate for better visualization
+    df_churn = df_churn.sort_values('ChurnRate', ascending=False)
+    
     fig, ax = plt.subplots(figsize=chartSize)
-    df_churn.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_churn))))
-    ax.set_title("Churn Rate by App", fontsize=16)
+    bars = ax.bar(df_churn['App'], df_churn['ChurnRate'], color=plt.cm.Set3(np.arange(len(df_churn))))
+    
+    ax.set_title("Overall Churn Rate by App", fontsize=16, fontweight='bold')
     ax.set_xlabel("App", fontsize=12)
     ax.set_ylabel("Churn Rate", fontsize=12)
+    ax.set_ylim(0, 1)  # Set y-axis limits from 0 to 1
+    
+    # Add value labels on top of each bar
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.2%}',
+                ha='center', va='bottom', fontsize=10)
+    
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, ha='right')
+    
+    # Add a horizontal line for average churn rate
+    avg_churn = df_churn['ChurnRate'].mean()
+    ax.axhline(y=avg_churn, color='r', linestyle='--', label=f'Avg: {avg_churn:.2%}')
+    
+    ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
+    
+    # Add some insights
+    st.write(f"The average churn rate across all apps is {avg_churn:.2%}.")
+    highest_churn = df_churn.iloc[0]
+    lowest_churn = df_churn.iloc[-1]
+    st.write(f"The app with the highest churn rate is {highest_churn['App']} at {highest_churn['ChurnRate']:.2%}.")
+    st.write(f"The app with the lowest churn rate is {lowest_churn['App']} at {lowest_churn['ChurnRate']:.2%}.")
+
+    # Churn Rate Over Time (Weekly)
+    st.subheader("Weekly Churn Rate by App")
+    st.write("""
+    This chart displays the weekly churn rate for each app. 
+
+    The weekly churn rate represents the proportion of users who have stopped using the app in a given week, relative to the total number of active users in that week. It's calculated by considering a user as 'churned' if they haven't returned to the app within 7 days of their last activity.
+
+    Key points to note:
+    1. The x-axis shows the weeks, allowing us to track changes over time.
+    2. The y-axis represents the weekly churn rate, ranging from 0 to 1 (or 0% to 100%).
+    3. Each line represents a different app, allowing for easy comparison between apps.
+    4. Spikes indicate weeks with higher churn, while dips show weeks with better retention.
+    5. This visualization helps identify short-term trends and seasonal patterns in user churn.
+
+    This chart helps identify specific periods of high churn, compare weekly performance between apps, and spot any unusual patterns or sudden changes in user retention that may require further investigation.
+    """)
+
+    # Calculate weekly churn rate
+    df['ChurnWeek'] = df['Timestamp'].dt.to_period('W')
+    df_sorted = df.sort_values(['App', 'Receiver', 'Timestamp'])
+    df_sorted['IsChurned'] = df_sorted.groupby(['App', 'Receiver'])['Timestamp'].diff().dt.days > 7
+
+    df_churn_time = df_sorted.groupby(['App', 'ChurnWeek']).agg({
+        'Receiver': 'nunique',
+        'IsChurned': 'sum'
+    }).reset_index()
+
+    df_churn_time['ChurnRate'] = df_churn_time['IsChurned'] / df_churn_time['Receiver']
+
+    # Convert ChurnWeek to timestamp for plotting
+    df_churn_time['Week'] = df_churn_time['ChurnWeek'].dt.to_timestamp()
+
+    # Plotting code
+    fig, ax = plt.subplots(figsize=chartSize)
+    for app in df_churn_time['App'].unique():
+        app_data = df_churn_time[df_churn_time['App'] == app]
+        ax.plot(app_data['Week'], app_data['ChurnRate'], label=app)
+
+    ax.set_title("Weekly Churn Rate by App", fontsize=16)
+    ax.set_xlabel("Week", fontsize=12)
+    ax.set_ylabel("Weekly Churn Rate", fontsize=12)
+    ax.legend(title="App", title_fontsize=12)
+    plt.xticks(rotation=45)
     st.pyplot(fig)
 
     # User Activity Heatmap
