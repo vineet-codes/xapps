@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.colors as mcolors
 # Set the default style for matplotlib
 # plt.style.use('bmh')  # Using 'default' instead of 'seaborn'
-plt.style.use('seaborn-v0_8-darkgrid')
+plt.style.use('seaborn-v0_8-dark-palette')
 
 # ['Solarize_Light2', '_classic_test_patch', 
 # '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 
@@ -35,7 +35,10 @@ df['Weekend'] = df['Timestamp'].dt.dayofweek >= 5  # Weekend if True
 
 st.title("VeBetterDAO: X-apps User Insights Dashboard")
 
-st.write("This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution. This data only includes information up to October 04, 2024")
+# Get the most recent date from the Timestamp column
+most_recent_date = df['Timestamp'].max().strftime('%B %d, %Y')
+
+st.write(f"This data primarily focuses on apps utilizing the Rewards Pool for B3TR distribution. This data only includes information up to {most_recent_date}")
 
 
 
