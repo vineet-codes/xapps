@@ -73,6 +73,20 @@ def create_visualizations():
     ax.set_xlabel("Date")
     ax.set_ylabel("Cumulative Actions")
     st.pyplot(fig)
+
+    # Total Number of Actions per App
+    st.subheader("Total Number of Actions per App")
+    app_actions = df['App'].value_counts()
+    fig, ax = plt.subplots(figsize=chartSize)
+    sns.barplot(x=app_actions.index, y=app_actions.values, ax=ax)
+    ax.set_title("Total Number of Actions per App")
+    ax.set_xlabel("App")
+    ax.set_ylabel("Number of Actions")
+    ax.tick_params(axis='x', rotation=45)
+    for i, v in enumerate(app_actions.values):
+        ax.text(i, v, str(v), ha='center', va='bottom')
+    st.pyplot(fig)
+    st.write("This chart shows the total number of actions for each app, giving us an overview of which apps are most frequently used.")
     
     
     st.subheader("Total Number of Actions per Day")
@@ -131,26 +145,43 @@ def create_visualizations():
     st.subheader("Unique Receivers/Wallets per App")
     df_unique_receivers = df.groupby('App')['Receiver'].nunique().sort_values(ascending=False)
     fig, ax = plt.subplots(figsize=chartSize)
-    df_unique_receivers.plot(kind='bar', ax=ax, color=plt.cm.Set2(np.arange(len(df_unique_receivers))))
+    bars = df_unique_receivers.plot(kind='bar', ax=ax, color=plt.cm.Set2(np.arange(len(df_unique_receivers))))
     ax.set_title("Unique Receivers/Wallets per App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
     ax.set_ylabel("Unique Receivers/Wallets", fontsize=12)
     ax.tick_params(axis='x', rotation=45)
+    
+    # Add value labels on top of each bar
+    for i, v in enumerate(df_unique_receivers):
+        ax.text(i, v, f'{v:,}', ha='center', va='bottom', fontweight='bold')
+    
     st.pyplot(fig)
     st.write("This graph shows the number of unique users (wallets) for each app, indicating the size of each app's user base.")
     
+    # Display the data in a table format
+    st.write("Unique Receivers/Wallets by App:")
+    st.table(df_unique_receivers.reset_index().rename(columns={'index': 'App', 'Receiver': 'Unique Receivers/Wallets'}))
     # Chart 3: Total Reward Distributed per App
     st.subheader("Total Reward Distributed per App")
     df_grouped_reward = df.groupby('App')['Reward'].sum().sort_values(ascending=False)
     fig, ax = plt.subplots(figsize=chartSize)
-    df_grouped_reward.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_grouped_reward))))
+    bars = df_grouped_reward.plot(kind='bar', ax=ax, color=plt.cm.Set3(np.arange(len(df_grouped_reward))))
     ax.set_title("Total Reward Distributed per App", fontsize=16)
     ax.set_xlabel("App", fontsize=12)
     ax.set_ylabel("Total Reward", fontsize=12)
     ax.tick_params(axis='x', rotation=45)
-    st.pyplot(fig)
-    st.write("This chart displays the total rewards distributed by each app, giving insight into which apps are most generous or popular in terms of rewards.")
     
+    # Add value labels on top of each bar
+    for i, v in enumerate(df_grouped_reward):
+        ax.text(i, v, f'{v:.2f}', ha='center', va='bottom', fontweight='bold')
+    
+    st.pyplot(fig)
+    
+    # Display the data in a table format
+    st.write("Total Rewards Distributed by App:")
+    st.table(df_grouped_reward.reset_index().rename(columns={'index': 'App', 'Reward': 'Total Reward'}))
+    
+    st.write("This chart and table display the total rewards distributed by each app, giving insight into which apps are most generous or popular in terms of rewards.")
     
     
     # Chart 5: Average Reward per User per App
